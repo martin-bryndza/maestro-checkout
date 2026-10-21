@@ -47,6 +47,30 @@ lib/
 
 ## Tests
 
+### Flutter Unit / Widget Tests
 ```bash
 flutter test
 ```
+
+### Maestro End-to-End (E2E) Tests
+
+Maestro flows are located in `test/maestro/`.
+
+To run the happy path smoke test (minimal path with promo code):
+```bash
+maestro test test/maestro/purchase_flow.yaml
+```
+
+To run the validation rules & selection resets test:
+```bash
+maestro test test/maestro/validations_and_resets_flow.yaml
+```
+
+To run the card payment declined flow:
+```bash
+maestro test test/maestro/card_payment_declined_flow.yaml
+```
+
+For a detailed breakdown of test scenarios, validation rules, and architecture, see [test/maestro/README.md](test/maestro/README.md).
+
+

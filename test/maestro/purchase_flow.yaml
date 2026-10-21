@@ -1,0 +1,233 @@
+appId: com.ventrata.maestro_booking_demo
+name: Minimal Purchase Flow with Promo Code
+tags:
+    - smoke
+---
+# -----------------------------------------------------------------------------
+# Maestro Smoke Test: NYC Icons Express Purchase Flow (Happy Path with Promo)
+# -----------------------------------------------------------------------------
+# Executes the minimal end-to-end path from product selection to paid order:
+# 1. Select package on Home screen
+# 2. Select ticket quantity
+# 3. Pick mandatory dates & times
+# 4. Fill required questions
+# 5. Fill contact details, unlock promo code hint, enter promo code MAESTROFREE
+# 6. Confirm 0.00 EUR order and verify Success page
+# -----------------------------------------------------------------------------
+
+- launchApp:
+    clearState: true
+
+# -----------------------------------------------------------------------------
+# STEP 1: Navigate & select the package
+# -----------------------------------------------------------------------------
+- assertVisible:
+    id: "Home_Page"
+
+- tapOn:
+    id: "Home_PackageButton"
+
+- assertVisible:
+    id: "Tickets_Page"
+
+# -----------------------------------------------------------------------------
+# STEP 2: Select ticket quantity
+# -----------------------------------------------------------------------------
+- tapOn:
+    id: "Tickets_AdultIncrementButton"
+
+- tapOn:
+    id: "Tickets_ContinueButton"
+
+# Wait for simulated latency to transition to DateTime_Page
+- extendedWaitUntil:
+    visible:
+      id: "DateTime_Page"
+    timeout: 15000
+
+# -----------------------------------------------------------------------------
+# STEP 3: Date & time selection
+# -----------------------------------------------------------------------------
+# Set force open debug mode to guarantee timeslot availability
+- tapOn:
+    id: "Debug_SetForceOpenButton"
+
+# Product 0 (Empire State Building)
+- tapOn:
+    id: "DateTime_Product0_SelectButton"
+
+- assertVisible:
+    id: "Calendar_Dialog"
+
+- tapOn:
+    id: "Calendar_Day15"
+
+- tapOn:
+    id: "Calendar_SaveButton"
+
+- assertVisible:
+    id: "DateTime_Product0_ConfirmedDate"
+
+# Product 1 (Madame Tussauds New York)
+- tapOn:
+    id: "DateTime_Product1_SelectButton"
+
+- assertVisible:
+    id: "Timeslot_Dialog"
+
+- tapOn:
+    id: "Timeslot_Slot_12_00"
+
+- tapOn:
+    id: "Timeslot_SaveButton"
+
+- assertVisible:
+    id: "DateTime_Product1_ConfirmedDate"
+
+# Product 3 (Statue of Liberty Ferry)
+- tapOn:
+    id: "DateTime_Product3_SelectButton"
+
+- assertVisible:
+    id: "DateTime_Product3_ConfirmedDate"
+
+- tapOn:
+    id: "DateTime_ContinueButton"
+
+# Wait for simulated latency to transition to Questions_Page
+- extendedWaitUntil:
+    visible:
+      id: "Questions_Page"
+    timeout: 15000
+
+# -----------------------------------------------------------------------------
+# STEP 4: Fill Questions page
+# -----------------------------------------------------------------------------
+- tapOn:
+    id: "Questions_BookingTextArea"
+
+- inputText: "Arriving by subway"
+
+- tapOn:
+    id: "Questions_BookingSelect"
+
+- tapOn: "Od přátel nebo rodiny"
+
+- scrollUntilVisible:
+    element:
+      id: "Questions_PerTicketCheckbox_0"
+
+- tapOn:
+    id: "Questions_PerTicketCheckbox_0"
+
+- tapOn:
+    id: "Questions_ContinueButton"
+
+# Wait for simulated latency to transition to Checkout_Page
+- extendedWaitUntil:
+    visible:
+      id: "Checkout_Page"
+    timeout: 15000
+
+# -----------------------------------------------------------------------------
+# STEP 5: Checkout page & Promo code application
+# -----------------------------------------------------------------------------
+- assertVisible:
+    id: "Checkout_PriceTotal"
+
+# Unlock promo code hint
+- scrollUntilVisible:
+    element:
+        id: "Checkout_EnterPromoButton"
+
+- tapOn:
+    id: "Checkout_EnterPromoButton"
+
+# Return to Questions page to enter promo code
+- back
+
+- assertVisible:
+    id: "Questions_Page"
+
+- scrollUntilVisible:
+    element: 
+        id: "Questions_PromoCodeField"
+
+- tapOn:
+    id: "Questions_PromoCodeField"
+
+- inputText: "MAESTROFREE"
+
+- hideKeyboard
+
+- tapOn:
+    id: "Questions_ContinueButton"
+
+- extendedWaitUntil:
+    visible:
+      id: "Checkout_Page"
+    timeout: 15000
+
+# Fill required contact details
+- tapOn:
+    id: "Checkout_FirstNameField"
+
+- inputText: "Jan"
+
+- tapOn:
+    id: "Checkout_LastNameField"
+
+- inputText: "Novák"
+
+- tapOn:
+    id: "Checkout_CountryField"
+
+- tapOn:
+    id: "Checkout_CountryOption_cz"
+
+- tapOn:
+    id: "Checkout_StateProvinceField"
+
+- inputText: "JMK"
+
+- hideKeyboard
+
+- tapOn:
+    id: "Checkout_BookingTermsCheckbox"
+
+- tapOn:
+    id: "Checkout_CancellationTermsCheckbox"
+
+# Verify promo applied (0.00 EUR total) and confirm order
+- assertVisible:
+    id: "Checkout_PromoAppliedChip"
+
+- tapOn:
+    id: "Checkout_PayOrConfirmButton"
+
+# Wait for simulated latency to transition to Success_Page
+- extendedWaitUntil:
+    visible:
+      id: "Success_Page"
+    timeout: 15000
+
+# -----------------------------------------------------------------------------
+# STEP 6: Success page verification
+# -----------------------------------------------------------------------------
+- assertVisible:
+    id: "Success_TicketCard"
+
+- assertVisible:
+    id: "Success_FreeBadge"
+
+- assertVisible:
+    id: "Success_UnitTypeRow_adult"
+
+- assertVisible:
+    id: "Success_ProductSummary_0"
+
+- assertVisible:
+    id: "Success_FinalTotal"
+
+- assertVisible:
+    id: "Success_PrimaryActionButton"

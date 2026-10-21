@@ -1,0 +1,282 @@
+appId: com.ventrata.maestro_booking_demo
+name: Validations & Selection Resets Check in Purchase Flow
+tags:
+    - regression
+---
+# -----------------------------------------------------------------------------
+# Maestro Test: Validations & Selection Resets Flow
+# -----------------------------------------------------------------------------
+# Asserts negative validation rules, error messages, and state reset behavior:
+# 1. Ticket validation: Child ticket requires an accompanying adult
+# 2. Date/Time selection reset: Reset selection link clears all confirmed dates
+# 3. Questions page validation: Error displayed when required fields are empty
+# 4. Checkout page validation: Field errors displayed when contact info is missing
+# -----------------------------------------------------------------------------
+
+- launchApp:
+    clearState: true
+
+# -----------------------------------------------------------------------------
+# STEP 1: Ticket Quantity Validation Rule
+# -----------------------------------------------------------------------------
+- assertVisible:
+    id: "Home_Page"
+
+- tapOn:
+    id: "Home_PackageButton"
+
+- assertVisible:
+    id: "Tickets_Page"
+
+# Increment Child without an Adult -> Child requires adult error must appear
+- tapOn:
+    id: "Tickets_ChildIncrementButton"
+
+- assertVisible:
+    id: "Tickets_ChildRequiresAdultError"
+
+# Add Adult ticket -> Error must disappear
+- tapOn:
+    id: "Tickets_AdultIncrementButton"
+
+- assertNotVisible:
+    id: "Tickets_ChildRequiresAdultError"
+
+- tapOn:
+    id: "Tickets_ContinueButton"
+
+- extendedWaitUntil:
+    visible:
+      id: "DateTime_Page"
+    timeout: 15000
+
+# -----------------------------------------------------------------------------
+# STEP 2: Date & Time Selection & Reset Selection Rule
+# -----------------------------------------------------------------------------
+- tapOn:
+    id: "Debug_SetForceOpenButton"
+
+# Select dates & times for mandatory products
+- tapOn:
+    id: "DateTime_Product0_SelectButton"
+
+- tapOn:
+    id: "Calendar_Day15"
+
+- tapOn:
+    id: "Calendar_SaveButton"
+
+- assertVisible:
+    id: "DateTime_Product0_ConfirmedDate"
+
+- tapOn:
+    id: "DateTime_Product1_SelectButton"
+
+- tapOn:
+    id: "Timeslot_Slot_12_00"
+
+- tapOn:
+    id: "Timeslot_SaveButton"
+
+- assertVisible:
+    id: "DateTime_Product1_ConfirmedDate"
+
+- tapOn:
+    id: "DateTime_Product3_SelectButton"
+
+- assertVisible:
+    id: "DateTime_Product3_ConfirmedDate"
+
+# Reset Selection -> Assert all confirmed dates are cleared
+- assertVisible:
+    id: "DateTime_ResetSelectionLink"
+
+- tapOn:
+    id: "DateTime_ResetSelectionLink"
+
+- assertNotVisible:
+    id: "DateTime_Product0_ConfirmedDate"
+
+- assertNotVisible:
+    id: "DateTime_Product1_ConfirmedDate"
+
+- assertNotVisible:
+    id: "DateTime_Product3_ConfirmedDate"
+
+# Re-select required dates & times to continue
+- tapOn:
+    id: "DateTime_Product0_SelectButton"
+
+- tapOn:
+    id: "Calendar_Day15"
+
+- tapOn:
+    id: "Calendar_SaveButton"
+
+- tapOn:
+    id: "DateTime_Product1_SelectButton"
+
+- tapOn:
+    id: "Timeslot_Slot_12_00"
+
+- tapOn:
+    id: "Timeslot_SaveButton"
+
+- tapOn:
+    id: "DateTime_Product3_SelectButton"
+
+- tapOn:
+    id: "DateTime_ContinueButton"
+
+- extendedWaitUntil:
+    visible:
+      id: "Questions_Page"
+    timeout: 15000
+
+# -----------------------------------------------------------------------------
+# STEP 3: Questions Page Validation
+# -----------------------------------------------------------------------------
+# Try to continue with empty required fields -> Validation error must block user
+- tapOn:
+    id: "Questions_ContinueButton"
+
+- assertVisible:
+    id: "Questions_ValidationError"
+
+- assertVisible:
+    id: "Questions_Page"
+
+# Fill required fields to proceed
+- tapOn:
+    id: "Questions_BookingTextArea"
+
+- inputText: "Arriving by subway"
+
+- tapOn:
+    id: "Questions_BookingSelect"
+
+- tapOn: "Od přátel nebo rodiny"
+
+- scrollUntilVisible:
+    element:
+        id: "Questions_PerTicketCheckbox_0"
+
+- tapOn:
+    id: "Questions_PerTicketCheckbox_0"
+
+- scrollUntilVisible:
+    element:
+        id: "Questions_PerTicketCheckbox_1"
+
+- tapOn:
+    id: "Questions_PerTicketCheckbox_1"
+
+- tapOn:
+    id: "Questions_ContinueButton"
+
+- extendedWaitUntil:
+    visible:
+      id: "Checkout_Page"
+    timeout: 15000
+
+# -----------------------------------------------------------------------------
+# STEP 4: Checkout Contact Validation
+# -----------------------------------------------------------------------------
+# Try to confirm order without contact details -> Field errors must appear
+- tapOn:
+    id: "Checkout_PayOrConfirmButton"
+
+- assertVisible:
+    id: "Checkout_FirstNameError"
+
+- assertVisible:
+    id: "Checkout_LastNameError"
+
+- assertVisible:
+    id: "Checkout_CountryError"
+
+- assertVisible:
+    id: "Checkout_StateProvinceError"
+
+# Fill contact details to verify form completion
+- tapOn:
+    id: "Checkout_FirstNameField"
+
+- inputText: "Jan"
+
+- tapOn:
+    id: "Checkout_LastNameField"
+
+- inputText: "Novák"
+
+- tapOn:
+    id: "Checkout_CountryField"
+
+- tapOn:
+    id: "Checkout_CountryOption_cz"
+
+- tapOn:
+    id: "Checkout_StateProvinceField"
+
+- inputText: "JMK"
+
+- hideKeyboard
+
+- tapOn:
+    id: "Checkout_BookingTermsCheckbox"
+
+- tapOn:
+    id: "Checkout_CancellationTermsCheckbox"
+
+- assertVisible:
+    id: "Checkout_PayOrConfirmButton"
+
+# Proceed to Payment Screen (without promo code)
+- tapOn:
+    id: "Checkout_PayOrConfirmButton"
+
+- extendedWaitUntil:
+    visible:
+      id: "Payment_Page"
+    timeout: 15000
+
+- tapOn:
+    id: "Payment_PayButton"
+
+- assertVisible:
+    id: "Payment_CardNumberError"
+
+- assertVisible:
+    id: "Payment_ExpiryError"
+
+- assertVisible:
+    id: "Payment_CvcError"
+
+- assertVisible:
+    id: "Payment_NameOnCardField"
+    text: "Jan Novák"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

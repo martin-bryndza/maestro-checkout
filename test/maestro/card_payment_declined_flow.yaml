@@ -1,0 +1,170 @@
+appId: com.ventrata.maestro_booking_demo
+name: Minimal Purchase Rlow with Invalid Payment Details
+tags:
+    - regression
+---
+# -----------------------------------------------------------------------------
+# Maestro Flow: Card Payment Declined Flow (Bonus / Edge Case)
+# -----------------------------------------------------------------------------
+# Tests the card payment path when no promo code is applied.
+# Verifies that card payment attempts fail with CVC Declined in test mode
+# and that the user can tap "Try again" to return and retry/apply alternative methods.
+# -----------------------------------------------------------------------------
+
+- launchApp:
+    clearState: true
+
+- tapOn:
+    id: "Home_PackageButton"
+
+- extendedWaitUntil:
+    visible:
+      id: "Tickets_Page"
+
+# Select 1 Adult ticket
+- tapOn:
+    id: "Tickets_AdultIncrementButton"
+
+- tapOn:
+    id: "Tickets_ContinueButton"
+
+- extendedWaitUntil:
+    visible:
+      id: "DateTime_Page"
+    timeout: 15000
+
+- tapOn:
+    id: "Debug_SetForceOpenButton"
+
+- tapOn:
+    id: "DateTime_Product0_SelectButton"
+
+- tapOn:
+    id: "Calendar_Day15"
+
+- tapOn:
+    id: "Calendar_SaveButton"
+
+- tapOn:
+    id: "DateTime_Product1_SelectButton"
+
+- tapOn:
+    id: "Timeslot_Slot_12_00"
+
+- tapOn:
+    id: "Timeslot_SaveButton"
+
+- tapOn:
+    id: "DateTime_Product3_SelectButton"
+
+- tapOn:
+    id: "DateTime_ContinueButton"
+
+- extendedWaitUntil:
+    visible:
+      id: "Questions_Page"
+    timeout: 15000
+
+# Fill Questions
+- tapOn:
+    id: "Questions_BookingTextArea"
+
+- inputText: "Taxi"
+
+- hideKeyboard
+
+- tapOn:
+    id: "Questions_BookingSelect"
+
+- tapOn: "Od přátel nebo rodiny"
+
+- scrollUntilVisible:
+    element:
+      id: "Questions_PerTicketCheckbox_0"
+
+- tapOn:
+    id: "Questions_PerTicketCheckbox_0"
+
+- tapOn:
+    id: "Questions_ContinueButton"
+
+- extendedWaitUntil:
+    visible:
+      id: "Checkout_Page"
+    timeout: 15000
+
+# Fill Checkout Contact Details
+- tapOn:
+    id: "Checkout_FirstNameField"
+
+- inputText: "Eva"
+
+- tapOn:
+    id: "Checkout_LastNameField"
+
+- inputText: "Svobodová"
+
+# - hideKeyboard
+
+- tapOn:
+    id: "Checkout_CountryField"
+
+- tapOn:
+    id: "Checkout_CountryOption_cz"
+
+- tapOn:
+    id: "Checkout_StateProvinceField"
+
+- inputText: "Brno"
+
+- hideKeyboard
+
+- tapOn:
+    id: "Checkout_BookingTermsCheckbox"
+
+- tapOn:
+    id: "Checkout_CancellationTermsCheckbox"
+
+# Proceed to Payment Screen (without promo code)
+- tapOn:
+    id: "Checkout_PayOrConfirmButton"
+
+- extendedWaitUntil:
+    visible:
+      id: "Payment_Page"
+    timeout: 15000
+
+# Fill Card Details
+- tapOn:
+    id: "Payment_CardNumberField"
+
+- inputText: "4111111111111111"
+
+- tapOn:
+    id: "Payment_ExpiryField"
+
+- inputText: "1228"
+
+- tapOn:
+    id: "Payment_CvcField"
+
+- inputText: "123"
+
+- tapOn:
+    id: "Payment_PayButton"
+
+# Processing page converts to declined page after 2 seconds
+- extendedWaitUntil:
+    visible:
+      id: "PaymentResult_DeclinedPage"
+    timeout: 10000
+
+- assertVisible:
+    id: "PaymentResult_RetryButton"
+
+# Tapping Retry returns user back to Payment page
+- tapOn:
+    id: "PaymentResult_RetryButton"
+
+- assertVisible:
+    id: "Payment_Page"
