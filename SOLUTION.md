@@ -56,5 +56,6 @@ I understand that the scenario was most likely designed to showcase my JavaScrip
 - Add or improve assertions on the Success page.
 - Add all possible fields and options to `purchase_flow_ddt` to ensure the critical purchase flow also works when optional inputs are provided.
 - Add more edge-case inputs to `purchase_flow_ddt`. This is the most critical flow and deserves thorough coverage.
+- Improve the DDT design, so that failure of one test does not prevent the others from completing.
 - Implement a JavaScript soft-assertion function to prevent one failure from hiding other bugs in the Validations and Resets flow. Ideally, all assertions would be in a separate test, but the slow execution time makes this impractical.
 - Add more negative scenarios to improve test coverage.
