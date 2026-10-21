@@ -1,0 +1,34 @@
+appId: com.ventrata.maestro_booking_demo
+env:
+  ADULT_COUNT: ${ADULT_COUNT || 1}
+  CHILD_COUNT: ${CHILD_COUNT || 0}
+---
+# -----------------------------------------------------------------------------
+# Subflow: Select Ticket Quantities
+# Parameters:
+#   ADULT_COUNT: Number of adult tickets to increment (default: 1)
+#   CHILD_COUNT: Number of child tickets to increment (default: 0)
+# -----------------------------------------------------------------------------
+
+- runScript: ../pages/TicketsPage.js
+- runScript: ../pages/DateTimePage.js
+
+- repeat:
+    times: ${ADULT_COUNT}
+    commands:
+      - tapOn:
+          id: "${output.TicketsPage.adultIncrement}"
+
+- repeat:
+    times: ${CHILD_COUNT}
+    commands:
+      - tapOn:
+          id: "${output.TicketsPage.childIncrement}"
+
+- tapOn:
+    id: "${output.TicketsPage.continueButton}"
+
+- extendedWaitUntil:
+    visible:
+      id: "${output.DateTimePage.page}"
+    timeout: 15000

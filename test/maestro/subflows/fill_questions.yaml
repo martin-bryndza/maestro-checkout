@@ -1,0 +1,47 @@
+appId: com.ventrata.maestro_booking_demo
+env:
+  ARRIVAL_TEXT: ${ARRIVAL_TEXT || "Přijedu metrem"}
+  REFERRAL_OPTION: ${REFERRAL_OPTION || "Od přátel nebo rodiny"}
+  TICKET_COUNT: ${TICKET_COUNT || 1}
+---
+# -----------------------------------------------------------------------------
+# Subflow: Fill Questions Page Form
+# Parameters:
+#   ARRIVAL_TEXT: Arrival method description (default: "Arriving by subway")
+#   REFERRAL_OPTION: Option text for referral dropdown (default: "Od přátel nebo rodiny")
+#   TICKET_COUNT: Number of per-ticket checkboxes to check (default: 1)
+# -----------------------------------------------------------------------------
+
+- runScript: ../pages/QuestionsPage.js
+- runScript: ../pages/CheckoutPage.js
+
+- tapOn:
+    id: "${output.QuestionsPage.bookingTextArea}"
+
+- inputText: "${ARRIVAL_TEXT}"
+
+- tapOn:
+    id: "${output.QuestionsPage.bookingSelect}"
+
+- tapOn: "${REFERRAL_OPTION}"
+
+# Loop through all per-ticket checkboxes (0 to TICKET_COUNT - 1)
+- evalScript: ${output.i = 0}
+
+- repeat:
+    times: ${TICKET_COUNT}
+    commands:
+      - scrollUntilVisible:
+          element:
+            id: "${output.QuestionsPage.perTicketCheckbox(output.i)}"
+      - tapOn:
+          id: "${output.QuestionsPage.perTicketCheckbox(output.i)}"
+      - evalScript: ${output.i++}
+
+- tapOn:
+    id: "${output.QuestionsPage.continueButton}"
+
+- extendedWaitUntil:
+    visible:
+      id: "${output.CheckoutPage.page}"
+    timeout: 15000

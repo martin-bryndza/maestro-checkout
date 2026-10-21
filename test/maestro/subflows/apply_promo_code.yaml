@@ -1,0 +1,43 @@
+appId: com.ventrata.maestro_booking_demo
+env:
+  PROMO_CODE: ${PROMO_CODE || "MAESTROFREE"}
+---
+# -----------------------------------------------------------------------------
+# Subflow: Unlock and Apply Promo Code
+# Parameters:
+#   PROMO_CODE: Promo code string to apply (default: "MAESTROFREE")
+# -----------------------------------------------------------------------------
+
+- runScript: ../pages/CheckoutPage.js
+- runScript: ../pages/QuestionsPage.js
+
+- scrollUntilVisible:
+    element:
+      id: "${output.CheckoutPage.enterPromoButton}"
+
+- tapOn:
+    id: "${output.CheckoutPage.enterPromoButton}"
+
+- back
+
+- assertVisible:
+    id: "${output.QuestionsPage.page}"
+
+- scrollUntilVisible:
+    element:
+      id: "${output.QuestionsPage.promoCodeField}"
+
+- tapOn:
+    id: "${output.QuestionsPage.promoCodeField}"
+
+- inputText: "${PROMO_CODE}"
+
+- hideKeyboard
+
+- tapOn:
+    id: "${output.QuestionsPage.continueButton}"
+
+- extendedWaitUntil:
+    visible:
+      id: "${output.CheckoutPage.page}"
+    timeout: 15000

@@ -9,10 +9,7 @@ This directory contains Maestro end-to-end (E2E) test flows for the ticket booki
 ### Prerequisites
 1. **Flutter SDK** installed and initialized.
 2. **Android Emulator** or physical Android device connected with USB debugging enabled.
-3. **Maestro CLI** installed ([Install Instructions](https://maestro.mobile.dev/getting-started/installing-maestro)):
-   ```bash
-   curl -FsSL "https://get.maestro.mobile.dev" | bash
-   ```
+3. **Maestro CLI** installed ([Install Instructions](https://maestro.mobile.dev/getting-started/installing-maestro))
 
 ### 1. Build and Run the App on Device
 Ensure your emulator or device is running:
@@ -44,50 +41,55 @@ maestro test test/maestro/
 
 ---
 
+## 📦 Page Objects Pattern (`test/maestro/pages/`)
+
+All element selectors and resource IDs are encapsulated into JavaScript Page Objects (`.js` files) using CommonJS exports:
+
+| Page Object | JS File | Purpose |
+| :--- | :--- | :--- |
+| `HomePage` | `HomePage.js` | Selectors for Home screen (package button, language toggle). |
+| `TicketsPage` | `TicketsPage.js` | Selectors for ticket quantity controls and error banners. |
+| `DateTimePage` | `DateTimePage.js` | Selectors for product tiles, calendar picker, timeslot picker, and debug mode buttons. |
+| `QuestionsPage` | `QuestionsPage.js` | Selectors for text area, referral dropdown, per-ticket checkboxes, and promo field. |
+| `CheckoutPage` | `CheckoutPage.js` | Selectors for contact fields, terms checkboxes, promo chip, and submit buttons. |
+| `PaymentPage` | `PaymentPage.js` | Selectors for credit card form, error messages, processing overlay, and declined screen. |
+| `SuccessPage` | `SuccessPage.js` | Selectors for ticket card, free badge, summary rows, and final total. |
+
+---
+
+## 🧩 Modular Subflows Architecture (`test/maestro/subflows/`)
+
+To eliminate code duplication and maintain test suite DRYness, common user interactions are extracted into parameterized subflows invoked via Maestro's `runFlow` mechanism:
+
+| Subflow | Purpose | Key Parameters (`env`) |
+| :--- | :--- | :--- |
+| `select_package.yaml` | Navigates from Home screen and selects package. | `PACKAGE_ID` |
+| `select_tickets.yaml` | Increments ticket quantities. | `ADULT_COUNT`, `CHILD_COUNT` |
+| `select_date_and_time.yaml` | Sets debug force-open mode and selects dates/timeslots for products 0, 1, 3. | `CALENDAR_DAY`, `TIMESLOT` |
+| `fill_questions.yaml` | Fills textarea, referral dropdown, and per-ticket checkboxes. | `ARRIVAL_TEXT`, `REFERRAL_OPTION`, `TICKET_COUNT` |
+| `fill_checkout_contact.yaml` | Fills contact fields and accepts terms checkboxes. | `FIRST_NAME`, `LAST_NAME`, `COUNTRY_OPTION_ID`, `STATE_PROVINCE` |
+| `apply_promo_code.yaml` | Unlocks promo code hint, navigates back, and applies promo code. | `PROMO_CODE` |
+| `verify_success_page.yaml` | Asserts ticket card, free badge, summary, and total on Success page. | N/A |
+
+---
+
 ## 📋 Test Flows Overview
 
 ### 1. Happy Path Smoke Test (`purchase_flow.yaml`)
-A single, fast end-to-end smoke test driving the minimal user path from product selection to a confirmed 0.00 EUR order:
-1. **Package Selection**: Selects **NYC Icons Express** package on Home screen.
-2. **Ticket Selection**: Selects 1 Adult ticket.
-3. **Date & Time Selection**: Sets force open debug mode (`Debug_SetForceOpenButton`), selects dates/times for required products (Empire State Building, Madame Tussauds, Statue of Liberty Ferry).
-4. **Questions Form**: Fills required questions (textarea, referral dropdown, per-ticket checkbox).
-5. **Checkout & Promo Application**: Fills contact details, taps `Checkout_EnterPromoButton` to unlock promo hint, returns (`back`) to Questions screen, applies `MAESTROFREE`, and continues back to Checkout.
-6. **Order Confirmation & Success Page**: Confirms order (0.00 EUR total) and asserts completion on `Success_Page` (`Success_TicketCard`, `Success_FreeBadge`, `Success_FinalTotal`, `Success_PrimaryActionButton`).
-
----
+A single, fast end-to-end smoke test driving the minimal user path from product selection to a confirmed 0.00 EUR order using subflows and Page Objects.
 
 ### 2. Validations & Resets Test (`validations_and_resets_flow.yaml`)
-A focused test asserting negative validation rules, error states, and state reset behavior across the application:
-1. **Ticket Rules Validation**:
-   - Increments a Child ticket without an Adult and asserts `Tickets_ChildRequiresAdultError` is displayed.
-   - Adds an Adult ticket and asserts the error disappears.
-2. **Date & Time Selection Reset Rule**:
-   - Confirms dates & times for mandatory products.
-   - Taps `DateTime_ResetSelectionLink` and asserts all confirmed product dates are cleared (`assertNotVisible`).
-   - Re-selects dates/times to proceed.
-3. **Questions Page Validation**:
-   - Attempts to proceed with empty required fields and asserts `Questions_ValidationError` appears.
-   - Fills required fields to proceed.
-4. **Checkout Contact Validation**:
-   - Attempts to confirm order without contact details and asserts field errors (`Checkout_FirstNameError`, `Checkout_LastNameError`, `Checkout_CountryError`, `Checkout_StateProvinceError`).
-   - Fills contact details to verify form completion.
-
----
+A focused regression test asserting negative validation rules (child without adult error, missing question fields, missing contact fields) and selection reset functionality.
 
 ### 3. Card Payment Declined Flow (`card_payment_declined_flow.yaml`)
-Covers the card payment path when no promo code is applied:
-- Navigates through ticket selection, date/time pickers, and questions form.
-- Fills contact details on Checkout and proceeds directly to the `Payment_Page`.
-- Inputs 16-digit card number, MMYY expiry, 3-digit CVC, and cardholder name.
-- Submits payment and verifies transition to `PaymentResult_DeclinedPage` ("Payment declined").
-- Tests the "Try again" action button returning the user to `Payment_Page`.
+Covers the credit card payment gateway path when no promo code is applied, verifying CVC declined handling and retry navigation.
 
 ---
 
-## 🛠️ Design & Technical Highlights
+## 🛠️ Technical Highlights
 
-- **Stable Semantic Selectors**: All actions and assertions rely exclusively on stable accessibility identifiers defined in `lib/ids/booking_ids.dart` (mapped via Flutter's `Semantics(identifier: ...)`).
-- **Simulated Latency Handling**: Uses `extendedWaitUntil: visible` with a 15-second timeout on key page transitions to accommodate the app's `withSimulatedLatency` (3-8s random delay).
-- **Deterministic Time Slots**: Activates `Debug_SetForceOpenButton` on the DateTime screen to ensure test runs pass consistently regardless of local time.
-- **Keyboard Handling**: Explicitly issues `hideKeyboard` commands after text inputs to prevent soft keyboards from obstructing underlying UI controls or touch targets.
+- **Page Objects**: All UI selectors are decoupled into reusable JavaScript modules (`test/maestro/pages/`).
+- **Nested Flows**: Clean separation between test scenarios and operational subflows using `runFlow` with `env` parameter passing.
+- **Stable Accessibility Selectors**: Relies exclusively on stable accessibility identifiers defined in `lib/ids/booking_ids.dart` (`Semantics(identifier: ...)`).
+- **Simulated Latency**: Uses `extendedWaitUntil: visible` with a 15-second timeout on key screen transitions to accommodate `withSimulatedLatency` (3-8s random delay).
+- **Keyboard Safety**: Uses `hideKeyboard` commands to ensure soft keyboards do not obscure bottom action buttons.

@@ -1,0 +1,21 @@
+appId: com.ventrata.maestro_booking_demo
+env:
+  PACKAGE_ID: ${PACKAGE_ID || "Home_PackageButton"}
+---
+# -----------------------------------------------------------------------------
+# Subflow: Select Package from Home Screen
+# Parameters:
+#   PACKAGE_ID: Resource ID of the package select button (default: "Home_PackageButton")
+# -----------------------------------------------------------------------------
+
+- runScript: ../pages/HomePage.js
+- runScript: ../pages/TicketsPage.js
+
+- assertVisible:
+    id: "${output.HomePage.page}"
+
+- tapOn:
+    id: "${PACKAGE_ID || output.HomePage.packageButton}"
+
+- assertVisible:
+    id: "${output.TicketsPage.page}"

@@ -1,0 +1,25 @@
+appId: com.ventrata.maestro_booking_demo
+---
+# -----------------------------------------------------------------------------
+# Subflow: Verify Order Success Page Details
+# -----------------------------------------------------------------------------
+
+- runScript: ../pages/SuccessPage.js
+
+- assertVisible:
+    id: "${output.SuccessPage.ticketCard}"
+
+- assertVisible:
+    id: "${output.SuccessPage.freeBadge}"
+
+- assertVisible:
+    id: "${output.SuccessPage.unitTypeRow('adult')}"
+
+- assertVisible:
+    id: "${output.SuccessPage.productSummary(0)}"
+
+- assertVisible:
+    id: "${output.SuccessPage.finalTotal}"
+
+- assertVisible:
+    id: "${output.SuccessPage.primaryActionButton}"

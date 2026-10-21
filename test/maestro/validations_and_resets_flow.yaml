@@ -1,17 +1,18 @@
 appId: com.ventrata.maestro_booking_demo
 name: Validations & Selection Resets Check in Purchase Flow
 tags:
-    - regression
+  - regression
 ---
 # -----------------------------------------------------------------------------
 # Maestro Test: Validations & Selection Resets Flow
 # -----------------------------------------------------------------------------
-# Asserts negative validation rules, error messages, and state reset behavior:
-# 1. Ticket validation: Child ticket requires an accompanying adult
-# 2. Date/Time selection reset: Reset selection link clears all confirmed dates
-# 3. Questions page validation: Error displayed when required fields are empty
-# 4. Checkout page validation: Field errors displayed when contact info is missing
-# -----------------------------------------------------------------------------
+
+- runScript: ./pages/TicketsPage.js
+- runScript: ./pages/DateTimePage.js
+- runScript: ./pages/QuestionsPage.js
+- runScript: ./pages/CheckoutPage.js
+- runScript: ./pages/PaymentPage.js
+
 
 - launchApp:
     clearState: true
@@ -19,264 +20,137 @@ tags:
 # -----------------------------------------------------------------------------
 # STEP 1: Ticket Quantity Validation Rule
 # -----------------------------------------------------------------------------
-- assertVisible:
-    id: "Home_Page"
-
-- tapOn:
-    id: "Home_PackageButton"
-
-- assertVisible:
-    id: "Tickets_Page"
+- runFlow: subflows/select_package.yaml
 
 # Increment Child without an Adult -> Child requires adult error must appear
 - tapOn:
-    id: "Tickets_ChildIncrementButton"
+    id: "${output.TicketsPage.childIncrement}"
 
 - assertVisible:
-    id: "Tickets_ChildRequiresAdultError"
+    id: "${output.TicketsPage.childRequiresAdultError}"
 
 # Add Adult ticket -> Error must disappear
 - tapOn:
-    id: "Tickets_AdultIncrementButton"
+    id: "${output.TicketsPage.adultIncrement}"
 
 - assertNotVisible:
-    id: "Tickets_ChildRequiresAdultError"
+    id: "${output.TicketsPage.childRequiresAdultError}"
 
 - tapOn:
-    id: "Tickets_ContinueButton"
+    id: "${output.TicketsPage.continueButton}"
 
 - extendedWaitUntil:
     visible:
-      id: "DateTime_Page"
+      id: "${output.DateTimePage.page}"
     timeout: 15000
 
 # -----------------------------------------------------------------------------
 # STEP 2: Date & Time Selection & Reset Selection Rule
 # -----------------------------------------------------------------------------
-- tapOn:
-    id: "Debug_SetForceOpenButton"
+# Select initial dates & times using subflow
+- runFlow:
+    file: subflows/select_date_and_time.yaml
+    env:
+      CALENDAR_DAY: 15
+      TIMESLOT: "12_00"
 
-# Select dates & times for mandatory products
-- tapOn:
-    id: "DateTime_Product0_SelectButton"
-
-- tapOn:
-    id: "Calendar_Day15"
-
-- tapOn:
-    id: "Calendar_SaveButton"
+# Navigate back to DateTime page to assert Reset Selection
+- back
 
 - assertVisible:
-    id: "DateTime_Product0_ConfirmedDate"
+    id: "${output.DateTimePage.resetSelectionLink}"
 
 - tapOn:
-    id: "DateTime_Product1_SelectButton"
-
-- tapOn:
-    id: "Timeslot_Slot_12_00"
-
-- tapOn:
-    id: "Timeslot_SaveButton"
-
-- assertVisible:
-    id: "DateTime_Product1_ConfirmedDate"
-
-- tapOn:
-    id: "DateTime_Product3_SelectButton"
-
-- assertVisible:
-    id: "DateTime_Product3_ConfirmedDate"
-
-# Reset Selection -> Assert all confirmed dates are cleared
-- assertVisible:
-    id: "DateTime_ResetSelectionLink"
-
-- tapOn:
-    id: "DateTime_ResetSelectionLink"
+    id: "${output.DateTimePage.resetSelectionLink}"
 
 - assertNotVisible:
-    id: "DateTime_Product0_ConfirmedDate"
+    id: "${output.DateTimePage.confirmedDate(0)}"
 
 - assertNotVisible:
-    id: "DateTime_Product1_ConfirmedDate"
+    id: "${output.DateTimePage.confirmedDate(1)}"
 
 - assertNotVisible:
-    id: "DateTime_Product3_ConfirmedDate"
+    id: "${output.DateTimePage.confirmedDate(3)}"
 
-# Re-select required dates & times to continue
-- tapOn:
-    id: "DateTime_Product0_SelectButton"
-
-- tapOn:
-    id: "Calendar_Day15"
-
-- tapOn:
-    id: "Calendar_SaveButton"
-
-- tapOn:
-    id: "DateTime_Product1_SelectButton"
-
-- tapOn:
-    id: "Timeslot_Slot_12_00"
-
-- tapOn:
-    id: "Timeslot_SaveButton"
-
-- tapOn:
-    id: "DateTime_Product3_SelectButton"
-
-- tapOn:
-    id: "DateTime_ContinueButton"
-
-- extendedWaitUntil:
-    visible:
-      id: "Questions_Page"
-    timeout: 15000
+# Re-select required dates & times using subflow
+- runFlow:
+    file: subflows/select_date_and_time.yaml
+    env:
+      CALENDAR_DAY: 15
+      TIMESLOT: "12_00"
 
 # -----------------------------------------------------------------------------
 # STEP 3: Questions Page Validation
 # -----------------------------------------------------------------------------
 # Try to continue with empty required fields -> Validation error must block user
 - tapOn:
-    id: "Questions_ContinueButton"
+    id: "${output.QuestionsPage.continueButton}"
 
 - assertVisible:
-    id: "Questions_ValidationError"
+    id: "${output.QuestionsPage.validationError}"
 
 - assertVisible:
-    id: "Questions_Page"
+    id: "${output.QuestionsPage.page}"
 
-# Fill required fields to proceed
-- tapOn:
-    id: "Questions_BookingTextArea"
-
-- inputText: "Arriving by subway"
-
-- tapOn:
-    id: "Questions_BookingSelect"
-
-- tapOn: "Od přátel nebo rodiny"
-
-- scrollUntilVisible:
-    element:
-        id: "Questions_PerTicketCheckbox_0"
-
-- tapOn:
-    id: "Questions_PerTicketCheckbox_0"
-
-- scrollUntilVisible:
-    element:
-        id: "Questions_PerTicketCheckbox_1"
-
-- tapOn:
-    id: "Questions_PerTicketCheckbox_1"
-
-- tapOn:
-    id: "Questions_ContinueButton"
-
-- extendedWaitUntil:
-    visible:
-      id: "Checkout_Page"
-    timeout: 15000
+# Fill required fields using subflow (2 tickets: 1 adult + 1 child)
+- runFlow:
+    file: subflows/fill_questions.yaml
+    env:
+      ARRIVAL_TEXT: "Metro"
+      REFERRAL_OPTION: "Od přátel nebo rodiny"
+      TICKET_COUNT: 2
 
 # -----------------------------------------------------------------------------
-# STEP 4: Checkout Contact Validation
+# STEP 4: Checkout Contact & Payment Validation
 # -----------------------------------------------------------------------------
 # Try to confirm order without contact details -> Field errors must appear
 - tapOn:
-    id: "Checkout_PayOrConfirmButton"
+    id: "${output.CheckoutPage.payOrConfirmButton}"
 
 - assertVisible:
-    id: "Checkout_FirstNameError"
+    id: "${output.CheckoutPage.firstNameError}"
 
 - assertVisible:
-    id: "Checkout_LastNameError"
+    id: "${output.CheckoutPage.lastNameError}"
 
 - assertVisible:
-    id: "Checkout_CountryError"
+    id: "${output.CheckoutPage.countryError}"
 
 - assertVisible:
-    id: "Checkout_StateProvinceError"
+    id: "${output.CheckoutPage.stateProvinceError}"
 
-# Fill contact details to verify form completion
-- tapOn:
-    id: "Checkout_FirstNameField"
-
-- inputText: "Jan"
-
-- tapOn:
-    id: "Checkout_LastNameField"
-
-- inputText: "Novák"
-
-- tapOn:
-    id: "Checkout_CountryField"
-
-- tapOn:
-    id: "Checkout_CountryOption_cz"
-
-- tapOn:
-    id: "Checkout_StateProvinceField"
-
-- inputText: "JMK"
-
-- hideKeyboard
-
-- tapOn:
-    id: "Checkout_BookingTermsCheckbox"
-
-- tapOn:
-    id: "Checkout_CancellationTermsCheckbox"
+# Fill contact details using subflow
+- runFlow:
+    file: subflows/fill_checkout_contact.yaml
+    env:
+      FIRST_NAME: "Jan"
+      LAST_NAME: "Novák"
+      STATE_PROVINCE: "JMK"
 
 - assertVisible:
-    id: "Checkout_PayOrConfirmButton"
+    id: "${output.CheckoutPage.payOrConfirmButton}"
 
 # Proceed to Payment Screen (without promo code)
 - tapOn:
-    id: "Checkout_PayOrConfirmButton"
+    id: "${output.CheckoutPage.payOrConfirmButton}"
 
 - extendedWaitUntil:
     visible:
-      id: "Payment_Page"
+      id: "${output.PaymentPage.page}"
     timeout: 15000
 
 - tapOn:
-    id: "Payment_PayButton"
+    id: "${output.PaymentPage.payButton}"
 
 - assertVisible:
-    id: "Payment_CardNumberError"
+    id: "${output.PaymentPage.cardNumberError}"
 
 - assertVisible:
-    id: "Payment_ExpiryError"
+    id: "${output.PaymentPage.expiryError}"
 
 - assertVisible:
-    id: "Payment_CvcError"
+    id: "${output.PaymentPage.cvcError}"
 
 - assertVisible:
-    id: "Payment_NameOnCardField"
+    id: "${output.PaymentPage.nameOnCardField}"
     text: "Jan Novák"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

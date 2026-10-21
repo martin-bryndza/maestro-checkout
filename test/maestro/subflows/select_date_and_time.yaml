@@ -1,0 +1,65 @@
+appId: com.ventrata.maestro_booking_demo
+env:
+  CALENDAR_DAY: ${CALENDAR_DAY || 15}
+  TIMESLOT: ${TIMESLOT || "12_00"}
+---
+# -----------------------------------------------------------------------------
+# Subflow: Select Dates & Times for Mandatory Products
+# Parameters:
+#   CALENDAR_DAY: Day of month for Product 0 calendar (default: 15)
+#   TIMESLOT: Timeslot string for Product 1 (default: "12_00")
+# -----------------------------------------------------------------------------
+
+- runScript: ../pages/DateTimePage.js
+- runScript: ../pages/QuestionsPage.js
+
+# Guarantee timeslot availability regardless of execution time
+- tapOn:
+    id: "${output.DateTimePage.setForceOpenButton}"
+
+# Product 0 (Empire State Building)
+- tapOn:
+    id: "${output.DateTimePage.selectButton(0)}"
+
+- assertVisible:
+    id: "${output.DateTimePage.calendarDialog}"
+
+- tapOn:
+    id: "${output.DateTimePage.calendarDay(CALENDAR_DAY)}"
+
+- tapOn:
+    id: "${output.DateTimePage.calendarSaveButton}"
+
+- assertVisible:
+    id: "${output.DateTimePage.confirmedDate(0)}"
+
+# Product 1 (Madame Tussauds New York)
+- tapOn:
+    id: "${output.DateTimePage.selectButton(1)}"
+
+- assertVisible:
+    id: "${output.DateTimePage.timeslotDialog}"
+
+- tapOn:
+    id: "${output.DateTimePage.timeslotSlot(TIMESLOT)}"
+
+- tapOn:
+    id: "${output.DateTimePage.timeslotSaveButton}"
+
+- assertVisible:
+    id: "${output.DateTimePage.confirmedDate(1)}"
+
+# Product 3 (Statue of Liberty Ferry - required, date auto-locked)
+- tapOn:
+    id: "${output.DateTimePage.selectButton(3)}"
+
+- assertVisible:
+    id: "${output.DateTimePage.confirmedDate(3)}"
+
+- tapOn:
+    id: "${output.DateTimePage.continueButton}"
+
+- extendedWaitUntil:
+    visible:
+      id: "${output.QuestionsPage.page}"
+    timeout: 15000
