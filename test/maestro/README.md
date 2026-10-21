@@ -19,9 +19,14 @@ flutter run
 
 ### 2. Execute the Maestro E2E Tests
 
+Run the test flow as defined in the ASSIGNMENT.md:
+```bash
+maestro test test/maestro/assignment_purchase_flow.yaml
+```
+
 Run the minimal happy path smoke test with promo code:
 ```bash
-maestro test test/maestro/purchase_flow.yaml
+maestro test test/maestro/purchase_flow_ddt.yaml
 ```
 
 Run the validation rules & resets assertion test:
@@ -61,28 +66,32 @@ All element selectors and resource IDs are encapsulated into JavaScript Page Obj
 
 To eliminate code duplication and maintain test suite DRYness, common user interactions are extracted into parameterized subflows invoked via Maestro's `runFlow` mechanism:
 
-| Subflow | Purpose | Key Parameters (`env`) |
-| :--- | :--- | :--- |
-| `select_package.yaml` | Navigates from Home screen and selects package. | `PACKAGE_ID` |
-| `select_tickets.yaml` | Increments ticket quantities. | `ADULT_COUNT`, `CHILD_COUNT` |
-| `select_date_and_time.yaml` | Sets debug force-open mode and selects dates/timeslots for products 0, 1, 3. | `CALENDAR_DAY`, `TIMESLOT` |
-| `fill_questions.yaml` | Fills textarea, referral dropdown, and per-ticket checkboxes. | `ARRIVAL_TEXT`, `REFERRAL_OPTION`, `TICKET_COUNT` |
-| `fill_checkout_contact.yaml` | Fills contact fields and accepts terms checkboxes. | `FIRST_NAME`, `LAST_NAME`, `COUNTRY_OPTION_ID`, `STATE_PROVINCE` |
-| `apply_promo_code.yaml` | Unlocks promo code hint, navigates back, and applies promo code. | `PROMO_CODE` |
-| `verify_success_page.yaml` | Asserts ticket card, free badge, summary, and total on Success page. | N/A |
+| Subflow                      | Purpose                                                                      |
+|:-----------------------------|:-----------------------------------------------------------------------------|
+| `select_package.yaml`        | Navigates from Home screen and selects package.                              |
+| `select_tickets.yaml`        | Increments ticket quantities.                                                |
+| `select_date_and_time.yaml`  | Sets debug force-open mode and selects dates/timeslots for products 0, 1, 3. |
+| `fill_questions.yaml`        | Fills textarea, referral dropdown, and per-ticket checkboxes.                |
+| `fill_checkout_contact.yaml` | Fills contact fields and accepts terms checkboxes.                           |
+| `apply_promo_code.yaml`      | Unlocks promo code hint, navigates back, and applies promo code.             |
+| `verify_success_page.yaml`   | Asserts ticket card, free badge, summary, and total on Success page.         |
+| `purchase_flow.yaml`         | Complete parametrized test flow used for DDT                                 |
 
 ---
 
 ## 📋 Test Flows Overview
 
-### 1. Happy Path Smoke Test (`subflows/purchase_flow.yaml`)
-A single, fast end-to-end smoke test driving the minimal user path from product selection to a confirmed 0.00 EUR order using subflows and Page Objects.
+### 1. Happy Path Smoke Test (`subflows/purchase_flow_ddt.yaml`)
+A fast end-to-end smoke test driving the minimal user path from product selection to a confirmed 0.00 EUR order.
 
 ### 2. Validations & Resets Test (`validations_and_resets_flow.yaml`)
 A focused regression test asserting negative validation rules (child without adult error, missing question fields, missing contact fields) and selection reset functionality.
 
 ### 3. Card Payment Declined Flow (`card_payment_declined_flow.yaml`)
 Covers the credit card payment gateway path when no promo code is applied, verifying CVC declined handling and retry navigation.
+
+### 4. Assignment Flow (`assignment_purchase_flow.yaml`)
+The test flow as defined in the ASSIGNMENT.md
 
 ---
 

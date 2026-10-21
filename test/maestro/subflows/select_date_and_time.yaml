@@ -34,6 +34,10 @@ env:
     id: "${output.DateTimePage.confirmedDate(0)}"
 
 # Product 1 (Madame Tussauds New York)
+- scrollUntilVisible:
+    element:
+        id: "${output.DateTimePage.selectButton(1)}"
+
 - tapOn:
     id: "${output.DateTimePage.selectButton(1)}"
 
@@ -50,6 +54,10 @@ env:
     id: "${output.DateTimePage.confirmedDate(1)}"
 
 # Product 3 (Statue of Liberty Ferry - required, date auto-locked)
+- scrollUntilVisible:
+    element:
+        id: "${output.DateTimePage.selectButton(3)}"
+
 - tapOn:
     id: "${output.DateTimePage.selectButton(3)}"
 

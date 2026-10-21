@@ -10,13 +10,14 @@ tags:
 # Input variations for DDT (Data Driven Test)
 # Only input the values that differ from the defaults
 # Defaults:
-# {adultCount: 1, childCount: 0, day: 15, timeslot: "12_00", arrival: "Přijedu metrem",
-# referral: "Od přátel nebo rodiny", tickets: 1, firstName: "Jan", lastName: "Novák", city: "Brno",
+# {adultCount: 1, childCount: 0, day: 15, timeslot: "12_00", arrival: "Metro",
+# referral: "Od přátel nebo rodiny", firstName: "Jan", lastName: "Novak", city: "Brno",
 # countryOptionId: "Checkout_CountryOption_cz", stateProvince: "JMK", promoCode: "MAESTROFREE"}
 - evalScript: >
     ${output.datasets = [
       { city: "" },
-      { adultCount: 1, childCount: 1, tickets: 2 },
+      { adultCount: 20, childCount: 0 },
+      { adultCount: 1, childCount: 19 }
     ]}
 
 - evalScript: ${output.i = 0}
@@ -32,11 +33,10 @@ tags:
             CHILD_COUNT: ${output.datasets[output.i].childCount || 0}
             CALENDAR_DAY: ${output.datasets[output.i].day || 15}
             TIMESLOT: ${output.datasets[output.i].timeslot || "12_00"}
-            ARRIVAL_TEXT: ${output.datasets[output.i].arrival || "Přijedu metrem"}
+            ARRIVAL_TEXT: ${output.datasets[output.i].arrival || "Metro"}
             REFERRAL_OPTION: ${output.datasets[output.i].referral || "Od přátel nebo rodiny"}
-            TICKET_COUNT: ${output.datasets[output.i].tickets || 1}
             FIRST_NAME: ${output.datasets[output.i].firstName || "Jan"}
-            LAST_NAME: ${output.datasets[output.i].lastName || "Novák"}
+            LAST_NAME: ${output.datasets[output.i].lastName || "Novak"}
             CITY: ${output.datasets[output.i].city || "Brno"}
             COUNTRY_OPTION_ID: ${output.datasets[output.i].countryOptionId || "Checkout_CountryOption_cz"}
             STATE_PROVINCE: ${output.datasets[output.i].stateProvince || "JMK"}

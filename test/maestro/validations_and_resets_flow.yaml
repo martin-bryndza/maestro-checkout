@@ -57,8 +57,10 @@ tags:
 # Navigate back to DateTime page to assert Reset Selection
 - back
 
-- assertVisible:
-    id: "${output.DateTimePage.resetSelectionLink}"
+- scrollUntilVisible:
+    direction: UP
+    element:
+      id: "${output.DateTimePage.resetSelectionLink}"
 
 - tapOn:
     id: "${output.DateTimePage.resetSelectionLink}"

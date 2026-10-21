@@ -65,6 +65,8 @@ tags:
 
 - inputText: "123"
 
+- hideKeyboard
+
 - tapOn:
     id: "${output.PaymentPage.payButton}"
 

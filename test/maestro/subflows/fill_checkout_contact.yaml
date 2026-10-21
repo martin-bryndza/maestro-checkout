@@ -28,10 +28,18 @@ env:
 
 - inputText: "${LAST_NAME}"
 
+- scrollUntilVisible:
+    element:
+        id: "${output.CheckoutPage.cityField}"
+
 - tapOn:
     id: "${output.CheckoutPage.cityField}"
 
 - inputText: "${CITY}"
+
+- scrollUntilVisible:
+    element:
+        id: "${output.CheckoutPage.countryField}"
 
 - tapOn:
     id: "${output.CheckoutPage.countryField}"
@@ -39,12 +47,20 @@ env:
 - tapOn:
     id: "${COUNTRY_OPTION_ID}"
 
+- scrollUntilVisible:
+    element:
+      id: "${output.CheckoutPage.stateProvinceField}"
+
 - tapOn:
     id: "${output.CheckoutPage.stateProvinceField}"
 
 - inputText: "${STATE_PROVINCE}"
 
 - hideKeyboard
+
+- scrollUntilVisible:
+    element:
+      id: "${output.CheckoutPage.cancellationTermsCheckbox}"
 
 - tapOn:
     id: "${output.CheckoutPage.bookingTermsCheckbox}"

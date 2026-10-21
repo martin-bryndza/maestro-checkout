@@ -20,6 +20,10 @@ env:
 
 - inputText: "${ARRIVAL_TEXT}"
 
+- scrollUntilVisible:
+    element:
+        id: "${output.QuestionsPage.bookingSelect}"
+
 - tapOn:
     id: "${output.QuestionsPage.bookingSelect}"
 

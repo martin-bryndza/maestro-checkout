@@ -4,11 +4,10 @@ env:
   CHILD_COUNT: ${CHILD_COUNT || 0}
   CALENDAR_DAY: ${CALENDAR_DAY || 15}
   TIMESLOT: ${TIMESLOT || "12_00"}
-  ARRIVAL_TEXT: ${ARRIVAL_TEXT || "Přijedu metrem"}
+  ARRIVAL_TEXT: ${ARRIVAL_TEXT || "Metro"}
   REFERRAL_OPTION: ${REFERRAL_OPTION || "Od přátel nebo rodiny"}
-  TICKET_COUNT: ${TICKET_COUNT || 1}
   FIRST_NAME: ${FIRST_NAME || "Jan"}
-  LAST_NAME: ${LAST_NAME || "Novák"}
+  LAST_NAME: ${LAST_NAME || "Novak"}
   COUNTRY_OPTION_ID: ${COUNTRY_OPTION_ID || "Checkout_CountryOption_cz"}
   STATE_PROVINCE: ${STATE_PROVINCE || "JMK"}
   PROMO_CODE: ${PROMO_CODE || "MAESTROFREE"}
@@ -26,7 +25,7 @@ env:
 # Step 1: Navigate & select package
 - runFlow: select_package.yaml
 
-# Step 2: Select ticket quantity (1 Adult)
+# Step 2: Select ticket quantity
 - runFlow:
     file: select_tickets.yaml
     env:
@@ -41,12 +40,14 @@ env:
       TIMESLOT: ${TIMESLOT}
 
 # Step 4: Fill Questions page
+- evalScript: ${output.TICKET_COUNT = Number(ADULT_COUNT) + Number(CHILD_COUNT);}
+
 - runFlow:
     file: fill_questions.yaml
     env:
       ARRIVAL_TEXT: ${ARRIVAL_TEXT}
       REFERRAL_OPTION: ${REFERRAL_OPTION}
-      TICKET_COUNT: ${TICKET_COUNT}
+      TICKET_COUNT: ${output.TICKET_COUNT}
 
 # Step 5: Unlock & apply promo code, then fill checkout contact details
 - runFlow:
@@ -63,8 +64,9 @@ env:
       STATE_PROVINCE: ${STATE_PROVINCE}
 
 # Step 6: Verify promo applied (0.00 EUR total) and confirm order
-- assertVisible:
-    id: "${output.CheckoutPage.promoAppliedChip}"
+- scrollUntilVisible:
+    element:
+      id: "${output.CheckoutPage.promoAppliedChip}"
 
 - tapOn:
     id: "${output.CheckoutPage.payOrConfirmButton}"

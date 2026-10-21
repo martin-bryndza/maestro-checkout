@@ -6,20 +6,26 @@ appId: com.ventrata.maestro_booking_demo
 
 - runScript: ../pages/SuccessPage.js
 
-- assertVisible:
-    id: "${output.SuccessPage.ticketCard}"
+- scrollUntilVisible:
+      element:
+        id: "${output.SuccessPage.ticketCard}"
 
-- assertVisible:
-    id: "${output.SuccessPage.freeBadge}"
+- scrollUntilVisible:
+      element:
+          id: "${output.SuccessPage.freeBadge}"
 
-- assertVisible:
-    id: "${output.SuccessPage.unitTypeRow('adult')}"
+- scrollUntilVisible:
+      element:
+          id: "${output.SuccessPage.unitTypeRow('adult')}"
 
-- assertVisible:
-    id: "${output.SuccessPage.productSummary(0)}"
+- scrollUntilVisible:
+      element:
+          id: "${output.SuccessPage.productSummary(0)}"
 
-- assertVisible:
-    id: "${output.SuccessPage.finalTotal}"
+- scrollUntilVisible:
+      element:
+          id: "${output.SuccessPage.finalTotal}"
 
-- assertVisible:
-    id: "${output.SuccessPage.primaryActionButton}"
+- scrollUntilVisible:
+      element:
+          id: "${output.SuccessPage.primaryActionButton}"

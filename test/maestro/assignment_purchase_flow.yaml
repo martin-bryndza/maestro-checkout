@@ -1,0 +1,147 @@
+appId: com.ventrata.maestro_booking_demo
+name: Assignment Purchase Flow
+---
+# -----------------------------------------------------------------------------
+# Purchase flow as defined in the assignment
+# -----------------------------------------------------------------------------
+
+- runScript: ./pages/CheckoutPage.js
+- runScript: ./pages/SuccessPage.js
+
+- launchApp:
+    clearState: true
+
+# -----------------------------------------------------------------------------
+# Step 1: Navigate & select package
+# -----------------------------------------------------------------------------
+- runFlow: ./subflows/select_package.yaml
+
+# -----------------------------------------------------------------------------
+# Step 2: Select ticket quantity (Random 20 tickets)
+# -----------------------------------------------------------------------------
+# Increment Child without an Adult -> Child requires adult error must appear
+- tapOn:
+    id: "${output.TicketsPage.childIncrement}"
+
+- assertVisible:
+    id: "${output.TicketsPage.childRequiresAdultError}"
+
+# Add Adult ticket -> Error must disappear
+- tapOn:
+    id: "${output.TicketsPage.adultIncrement}"
+
+- assertNotVisible:
+    id: "${output.TicketsPage.childRequiresAdultError}"
+
+# Remove the tickets again
+- tapOn:
+    id: "${output.TicketsPage.childDecrement}"
+
+- tapOn:
+    id: "${output.TicketsPage.adultDecrement}"
+
+# Generate a random number of tickets such that ADULT_COUNT > 0 and ADULT_COUNT + CHILD_COUNT <= 20.
+- evalScript: >
+    ${output.ADULT_COUNT = Math.floor(Math.random() * 20) + 1;
+      output.CHILD_COUNT = Math.floor(Math.random() * (21 - output.ADULT_COUNT));
+      output.TICKET_COUNT = output.ADULT_COUNT + output.CHILD_COUNT;}
+
+- runFlow:
+    file: ./subflows/select_tickets.yaml
+    env:
+      ADULT_COUNT: ${output.ADULT_COUNT}
+      CHILD_COUNT: ${output.CHILD_COUNT}
+
+# -----------------------------------------------------------------------------
+# Step 3: Date & time selection
+# -----------------------------------------------------------------------------
+# Select initial dates & times using subflow
+- runFlow:
+    file: ./subflows/select_date_and_time.yaml
+    env:
+      CALENDAR_DAY: 15
+      TIMESLOT: "12_00"
+
+# Navigate back to DateTime page to assert Reset Selection
+- back
+
+- scrollUntilVisible:
+    direction: UP
+    element:
+      id: "${output.DateTimePage.resetSelectionLink}"
+
+- tapOn:
+    id: "${output.DateTimePage.resetSelectionLink}"
+
+- assertNotVisible:
+    id: "${output.DateTimePage.confirmedDate(0)}"
+
+- assertNotVisible:
+    id: "${output.DateTimePage.confirmedDate(1)}"
+
+- assertNotVisible:
+    id: "${output.DateTimePage.confirmedDate(3)}"
+
+# Re-select required dates & times using subflow
+- runFlow:
+    file: ./subflows/select_date_and_time.yaml
+    env:
+      CALENDAR_DAY: 15
+      TIMESLOT: "12_00"
+
+# -----------------------------------------------------------------------------
+# Step 4: Fill Questions page
+# -----------------------------------------------------------------------------
+# Try to continue with empty required fields -> Validation error must block user
+- tapOn:
+    id: "${output.QuestionsPage.continueButton}"
+
+- assertVisible:
+    id: "${output.QuestionsPage.validationError}"
+
+- assertVisible:
+    id: "${output.QuestionsPage.page}"
+
+# Fill required fields using subflow
+- runFlow:
+    file: ./subflows/fill_questions.yaml
+    env:
+      ARRIVAL_TEXT: "Taxi"
+      REFERRAL_OPTION: "Od přátel nebo rodiny"
+      TICKET_COUNT: ${output.TICKET_COUNT}
+
+# -----------------------------------------------------------------------------
+# Step 5: Unlock & apply promo code, then fill checkout contact details
+# -----------------------------------------------------------------------------
+- runFlow:
+    file: ./subflows/apply_promo_code.yaml
+    env:
+      PROMO_CODE: "MAESTROFREE"
+
+- runFlow:
+    file: ./subflows/fill_checkout_contact.yaml
+    env:
+      FIRST_NAME: "Jan"
+      LAST_NAME: "Novák"
+      CITY: ""
+      STATE_PROVINCE: "JMK"
+
+# -----------------------------------------------------------------------------
+# Step 6: Verify promo applied (0.00 EUR total) and confirm order
+# -----------------------------------------------------------------------------
+- scrollUntilVisible:
+    element:
+      id: "${output.CheckoutPage.promoAppliedChip}"
+
+- tapOn:
+    id: "${output.CheckoutPage.payOrConfirmButton}"
+
+- extendedWaitUntil:
+    visible:
+      id: "${output.SuccessPage.page}"
+    timeout: 15000
+
+# -----------------------------------------------------------------------------
+# Step 7: Success page verification
+# -----------------------------------------------------------------------------
+- runFlow: ./subflows/verify_success_page.yaml
