@@ -1,53 +1,60 @@
 # Solution by Martin Bryndza
 
-The task was to implement a scenario with particular steps and validations.
-The scenario can be run by 
+The task was to implement a scenario with specific steps and validations.
+
+Run the scenario with:
+
 ```bash
 maestro test assignment_purchase_flow.yaml
 ```
 
 In my opinion, the assigned scenario would not make a good test for the following reasons:
-- It inputs random values - tests must be deterministic for them to be repeatable and to make identification of flaky tests easier. Instead, edge values should be properly tested in every test run.
-- It validates bad-day scenarios in a happy-day flow - this may lead to the smoke scenario not be executed because of some less important error. This may hide other critical errors.
 
-I do understand that the scenario was most probably created for me to showcase my JS programming skills. :-)
+- **It uses random values.** Tests should be deterministic and repeatable, making it easier to identify flaky tests. Instead of random inputs, edge cases should be tested explicitly in every test run.
+- **It combines negative scenarios with a happy-path flow.** This could prevent the smoke test from completing due to a less critical error, potentially hiding other critical issues.
 
-**What follows is my thought process and the list of the things I have done for this assignment:**
+I understand that the scenario was most likely designed to showcase my JavaScript programming skills. :-)
 
-1. Install all the requirements and tools needed for the project
-2. The project uses an older version of Graddle, that does not support the current Java SDK. I must download Java SDK 24.
-3. Maestro does not support Android API 36, I must get a device with API 34
-4. Run the app and perform a brief exploratory testing session (ah, there are some bugs)
-5. Use Gemini in Android Studio to generate two test flows - a smoke test for the purchase and a bad-day scenario with invalid card details:
-     - The successful purchase with promo code scenario was checking all validations and resets along the way as well
-6. I want to have a proper smoke test for the happy day scenario without checking anything unnecessary, so I tasked Gemini to split the first flow into purchase_flow and validations_and_resets_flow.
-7. Run and fix the second flow in Maestro Studio
-8. Run and fix the smoke test in Maestro Studio - in both cases, there were missing scrollUntilVisible commands
-9. Discovery: There is no global option for Maestro to scroll automatically without having to specify it for every single object. Bummer.
-10. Discovery: Maestro sends a Back command when hideKeyboard is called. This occasionally leads to the app going to a previous screen and fails the test. I must use the command carefully.
-11. Improve the scenarios by adding asserts and some extra steps
-12. Task Gemini to create and parametrize subflows (to make test maintenance easier), then fix the output
-13. Make perTicketCheckboxes be selected in a loop
-14. Check that the date selection will always work - Dev prepared for it, making the app testable by Maestro, good job!
-15. Task Gemini to extract selectors into Page Objects to make test maintenance easier. Fix the generated code.
-16. Introduce DDT for the smoke E2E flow
-17. Make sure the tests run also on a small device (add auto-scrolling and hideKeyboard where necessary)
-18. Add the original flow from the assignment (just in case).
-19. Create the SOLUTION.md
+**What follows is my thought and learning process and a list of the steps I took to complete the assignment.**
 
-### BUGS and design flaws found in the demo app:
-- The Home page shows Slovak instead of Czech + there is a typo “so výhľadom”.
-- Promo code field activation displays an error. The promo code field is added to the previous “questions” page.
-- The app does not automatically scroll to the first validation error, leaving the user wondering why the confirm button did not work.
+1. Install all the required tools and dependencies.
+2. Discover that the project uses an older version of Gradle that does not support the current Java SDK. Download Java SDK 24.
+3. Discover that Maestro does not support Android API 36. Set up a device running API 34 instead.
+4. Run the app and perform a brief exploratory testing session. (Ah, there are a few bugs!)
+5. Use Gemini in Android Studio to generate two test flows: a purchase smoke test and a negative scenario covering invalid card details.
+   - The successful purchase scenario with a promo code also checked validations and form resets along the way.
+6. Decide that the happy-path smoke test should focus on the critical flow without unnecessary checks. Ask Gemini to split the original flow into `purchase_flow` and `validations_and_resets_flow`.
+7. Run and fix the second flow in Maestro Studio.
+8. Run and fix the smoke test in Maestro Studio. Both flows were missing `scrollUntilVisible` commands.
+9. Discover that Maestro has no global option for automatic scrolling, so scrolling must be specified for individual elements. Bummer.
+10. Discover that Maestro sends a Back command when `hideKeyboard` is called. This can occasionally navigate back to the previous screen and cause the test to fail. Use the command carefully.
+11. Improve the scenarios by adding assertions and extra steps.
+12. Ask Gemini to create parameterized subflows to make test maintenance easier, then fix the generated output.
+13. Implement a loop to select the `perTicketCheckboxes`.
+14. Verify that date selection works reliably. The developer has made the app testable by Maestro, which is great!
+15. Ask Gemini to extract selectors into Page Objects to improve test maintainability, then fix the generated code.
+16. Introduce data-driven testing (DDT) for the smoke E2E flow.
+17. Ensure the tests also run on a small device by adding automatic scrolling and `hideKeyboard` calls where necessary.
+18. Include the original flow from the assignment for completeness (`assignment_purchase_flow.yaml`).
+19. Create this `SOLUTION.md` file.
 
-### Maestro bugs and bummers:
-- When an unsupported character is input into a text field, the keyboard is closed automatically. The following call to hide the keyboard then produces a Back action instead.
+## Bugs and design flaws found in the demo app
+
+- The home page displays Slovak instead of Czech and contains a typo: “so výhľadom”.
+- Activating the promo code field displays an error. The promo code field is added to the previous “questions” page.
+- The app does not automatically scroll to the first validation error on the Questions page, leaving the user wondering why the confirmation button did not work.
+
+## Maestro bugs and pain points
+
+- When an unsupported character is entered into a text field, the keyboard closes automatically. A subsequent `hideKeyboard` call then triggers a Back action instead.
 - No automatic scrolling.
-- Limited debugging options (at least the default ones).
-- Slow test execution and laggy IDE.
+- Limited debugging options in Maestro Studio, at least with the default configuration.
+- Slow test execution.
 
-### TODO - things I haven’t done but definitely would do for a real-world test automation:
-- Add all possible fields and options into the purchase_flow_ddt - it must be possible to complete this critical flow also when optional inputs are used
-- Add more edge case inputs for the purchase_flow_ddt - again, this is the most critical flow
-- Implement a JS soft-assert function to prevent bug hiding in the Validations and Resets flow
-- Add more bad-day scenarios
+## TODO — What I would do for real-world test automation
+
+- Add or improve assertions on the Success page.
+- Add all possible fields and options to `purchase_flow_ddt` to ensure the critical purchase flow also works when optional inputs are provided.
+- Add more edge-case inputs to `purchase_flow_ddt`. This is the most critical flow and deserves thorough coverage.
+- Implement a JavaScript soft-assertion function to prevent one failure from hiding other bugs in the Validations and Resets flow. Ideally, all assertions would be in a separate test, but the slow execution time makes this impractical.
+- Add more negative scenarios to improve test coverage.
