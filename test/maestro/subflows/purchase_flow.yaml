@@ -1,0 +1,78 @@
+appId: com.ventrata.maestro_booking_demo
+env:
+  ADULT_COUNT: ${ADULT_COUNT || 1}
+  CHILD_COUNT: ${CHILD_COUNT || 0}
+  CALENDAR_DAY: ${CALENDAR_DAY || 15}
+  TIMESLOT: ${TIMESLOT || "12_00"}
+  ARRIVAL_TEXT: ${ARRIVAL_TEXT || "Přijedu metrem"}
+  REFERRAL_OPTION: ${REFERRAL_OPTION || "Od přátel nebo rodiny"}
+  TICKET_COUNT: ${TICKET_COUNT || 1}
+  FIRST_NAME: ${FIRST_NAME || "Jan"}
+  LAST_NAME: ${LAST_NAME || "Novák"}
+  COUNTRY_OPTION_ID: ${COUNTRY_OPTION_ID || "Checkout_CountryOption_cz"}
+  STATE_PROVINCE: ${STATE_PROVINCE || "JMK"}
+  PROMO_CODE: ${PROMO_CODE || "MAESTROFREE"}
+---
+# -----------------------------------------------------------------------------
+# Maestro Smoke Test: NYC Icons Express Purchase Flow (Happy Path with Promo)
+# -----------------------------------------------------------------------------
+
+- runScript: ../pages/CheckoutPage.js
+- runScript: ../pages/SuccessPage.js
+
+- launchApp:
+    clearState: true
+
+# Step 1: Navigate & select package
+- runFlow: select_package.yaml
+
+# Step 2: Select ticket quantity (1 Adult)
+- runFlow:
+    file: select_tickets.yaml
+    env:
+      ADULT_COUNT: ${ADULT_COUNT}
+      CHILD_COUNT: ${CHILD_COUNT}
+
+# Step 3: Date & time selection
+- runFlow:
+    file: select_date_and_time.yaml
+    env:
+      CALENDAR_DAY: ${CALENDAR_DAY}
+      TIMESLOT: ${TIMESLOT}
+
+# Step 4: Fill Questions page
+- runFlow:
+    file: fill_questions.yaml
+    env:
+      ARRIVAL_TEXT: ${ARRIVAL_TEXT}
+      REFERRAL_OPTION: ${REFERRAL_OPTION}
+      TICKET_COUNT: ${TICKET_COUNT}
+
+# Step 5: Unlock & apply promo code, then fill checkout contact details
+- runFlow:
+    file: apply_promo_code.yaml
+    env:
+      PROMO_CODE: ${PROMO_CODE}
+
+- runFlow:
+    file: fill_checkout_contact.yaml
+    env:
+      FIRST_NAME: ${FIRST_NAME}
+      LAST_NAME: ${LAST_NAME}
+      CITY: ${CITY}
+      STATE_PROVINCE: ${STATE_PROVINCE}
+
+# Step 6: Verify promo applied (0.00 EUR total) and confirm order
+- assertVisible:
+    id: "${output.CheckoutPage.promoAppliedChip}"
+
+- tapOn:
+    id: "${output.CheckoutPage.payOrConfirmButton}"
+
+- extendedWaitUntil:
+    visible:
+      id: "${output.SuccessPage.page}"
+    timeout: 15000
+
+# Step 7: Success page verification
+- runFlow: verify_success_page.yaml

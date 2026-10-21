@@ -2,6 +2,7 @@ appId: com.ventrata.maestro_booking_demo
 env:
   FIRST_NAME: ${FIRST_NAME || "Jan"}
   LAST_NAME: ${LAST_NAME || "Novák"}
+  CITY: ${CITY || "Brno"}
   COUNTRY_OPTION_ID: ${COUNTRY_OPTION_ID || "Checkout_CountryOption_cz"}
   STATE_PROVINCE: ${STATE_PROVINCE || "JMK"}
 ---
@@ -10,6 +11,7 @@ env:
 # Parameters:
 #   FIRST_NAME: First name (default: "Jan")
 #   LAST_NAME: Last name (default: "Novák")
+#   CITY: City (default: "Brno")
 #   COUNTRY_OPTION_ID: Country dropdown option ID (default: "Checkout_CountryOption_cz")
 #   STATE_PROVINCE: State or Province (default: "JMK")
 # -----------------------------------------------------------------------------
@@ -25,6 +27,11 @@ env:
     id: "${output.CheckoutPage.lastNameField}"
 
 - inputText: "${LAST_NAME}"
+
+- tapOn:
+    id: "${output.CheckoutPage.cityField}"
+
+- inputText: "${CITY}"
 
 - tapOn:
     id: "${output.CheckoutPage.countryField}"

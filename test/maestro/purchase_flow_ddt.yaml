@@ -1,0 +1,45 @@
+appId: com.ventrata.maestro_booking_demo
+name: Minimal Purchase Flow with Promo Code
+tags:
+  - smoke
+---
+# -----------------------------------------------------------------------------
+# Maestro Smoke Test: NYC Icons Express Purchase Flow (Happy Path with Promo)
+# -----------------------------------------------------------------------------
+
+# Input variations for DDT (Data Driven Test)
+# Only input the values that differ from the defaults
+# Defaults:
+# {adultCount: 1, childCount: 0, day: 15, timeslot: "12_00", arrival: "Přijedu metrem",
+# referral: "Od přátel nebo rodiny", tickets: 1, firstName: "Jan", lastName: "Novák", city: "Brno",
+# countryOptionId: "Checkout_CountryOption_cz", stateProvince: "JMK", promoCode: "MAESTROFREE"}
+- evalScript: >
+    ${output.datasets = [
+      { city: "" },
+      { adultCount: 1, childCount: 1, tickets: 2 },
+    ]}
+
+- evalScript: ${output.i = 0}
+
+- repeat:
+    while:
+      true: ${output.i < output.datasets.length}
+    commands:
+      - runFlow:
+          file: ./subflows/purchase_flow.yaml
+          env:
+            ADULT_COUNT: ${output.datasets[output.i].adultCount || 1}
+            CHILD_COUNT: ${output.datasets[output.i].childCount || 0}
+            CALENDAR_DAY: ${output.datasets[output.i].day || 15}
+            TIMESLOT: ${output.datasets[output.i].timeslot || "12_00"}
+            ARRIVAL_TEXT: ${output.datasets[output.i].arrival || "Přijedu metrem"}
+            REFERRAL_OPTION: ${output.datasets[output.i].referral || "Od přátel nebo rodiny"}
+            TICKET_COUNT: ${output.datasets[output.i].tickets || 1}
+            FIRST_NAME: ${output.datasets[output.i].firstName || "Jan"}
+            LAST_NAME: ${output.datasets[output.i].lastName || "Novák"}
+            CITY: ${output.datasets[output.i].city || "Brno"}
+            COUNTRY_OPTION_ID: ${output.datasets[output.i].countryOptionId || "Checkout_CountryOption_cz"}
+            STATE_PROVINCE: ${output.datasets[output.i].stateProvince || "JMK"}
+            PROMO_CODE: ${output.datasets[output.i].promoCode || "MAESTROFREE"}
+      - evalScript: ${output.i++}
+

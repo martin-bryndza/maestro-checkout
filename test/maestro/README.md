@@ -75,7 +75,7 @@ To eliminate code duplication and maintain test suite DRYness, common user inter
 
 ## 📋 Test Flows Overview
 
-### 1. Happy Path Smoke Test (`purchase_flow.yaml`)
+### 1. Happy Path Smoke Test (`subflows/purchase_flow.yaml`)
 A single, fast end-to-end smoke test driving the minimal user path from product selection to a confirmed 0.00 EUR order using subflows and Page Objects.
 
 ### 2. Validations & Resets Test (`validations_and_resets_flow.yaml`)
